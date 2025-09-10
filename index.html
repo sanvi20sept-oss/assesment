@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>s and p </title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Scholarship and Personality Assessment</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #ffffff);
+    color: #333;
+  }
+  .container { 
+    max-width: 700px; 
+    margin: auto; 
+    padding: 2rem; 
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+  }
+  h1, h2 { 
+    text-align: center; 
+  }
+  .question { 
+    font-size: 1.2rem; 
+    margin-bottom: 1rem; 
+  }
+  .option { 
+    display: block; 
+    margin-bottom: 0.5rem; 
+    cursor: pointer; 
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s;
+  }
+  button:hover { 
+    background-color: #005fa3; 
+  }
+  #startScreen, #quizScreen, #dashboard { 
+    display: none; 
+  }
+  canvas { 
+    max-width: 100%; 
+    margin-top: 1rem; 
+  }
+  input[type="radio"] { 
+    margin-right: 10px; 
+  }
+  #timer {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #d32f2f;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Start Screen -->
+  <div id="startScreen" class="card" style="display: block;">
+    <h1> Scholarship and Personality Assessment</h1>
+    <p>This test helps assess your natural leadership style and readiness to take responsibility.</p>
+    <input type="text" id="name" placeholder="Your Name" style="width:100%; padding:10px; margin-top:1rem;" />
+    <input type="email" id="email" placeholder="Your Email" style="width:100%; padding:10px; margin-top:1rem;" />
+    <input type="tel" id="phone" placeholder="Your Phone Number" style="width:100%; padding:10px; margin-top:1rem;" />
+    <input type="date" id="dob" style="width:100%; padding:10px; margin-top:1rem;" />
+    <button onclick="startTest()">Start Test</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quizScreen" class="card">
+    <div id="timer">15:00</div>
+    <h2 id="questionNumber"></h2>
+    <div id="questionBox" class="question"></div>
+    <div id="optionsBox"></div>
+    <button onclick="submitAnswer()">Next</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="card">
+    <h2>Test Summary</h2>
+    <div id="summary"></div>
+    <canvas id="pieChart"></canvas>
+    <canvas id="barChart"></canvas>
+    <button onclick="retakeTest()">Retake Test</button>
+  </div>
+</div>
+
+<script>
+  // Combine all 75+ questions here
+  const allQuestions = [
+    // Physics (15)
+    {q:"The unit of force is:", options:["Joule","Newton","Watt","Pascal"], answer:1},
+    {q:"A car accelerates from 0 to 20 m/s in 10 s. Its acceleration is:", options:["10 m/s²","0.5 m/s²","2 m/s²","5 m/s²"], answer:2},
+    {q:"The speed of light in vacuum is approximately:", options:["3 × 10⁸ m/s","3 × 10⁶ m/s","3 × 10⁵ m/s","3 × 10⁴ m/s"], answer:0},
+    {q:"Which law states that current is directly proportional to voltage?", options:["Coulomb’s Law","Newton’s Law","Ohm’s Law","Boyle’s Law"], answer:2},
+    {q:"The unit of electric current is:", options:["Ohm","Volt","Ampere","Watt"], answer:2},
+    {q:"The mirror used in car headlights is:", options:["Concave","Convex","Plane","Cylindrical"], answer:0},
+    {q:"What causes tides on Earth?", options:["Earth’s rotation","Gravitational pull of Moon & Sun","Wind","Sunlight"], answer:1},
+    {q:"Energy possessed by a body due to motion is called:", options:["Potential energy","Kinetic energy","Heat energy","Light energy"], answer:1},
+    {q:"Which device is used to measure current?", options:["Voltmeter","Ammeter","Barometer","Thermometer"], answer:1},
+    {q:"Which type of lens is used in a magnifying glass?", options:["Convex","Concave","Cylindrical","Plane"], answer:0},
+    {q:"SI unit of power is:", options:["Watt","Joule","Volt","Ampere"], answer:0},
+    {q:"Which type of mirror is used in rear-view mirrors?", options:["Concave","Convex","Plane","Parabolic"], answer:1},
+    {q:"Work is defined as:", options:["Force × Time","Force × Distance","Energy × Power","Distance ÷ Time"], answer:1},
+    {q:"Which type of energy is stored in a stretched spring?", options:["Heat","Light","Potential","Kinetic"], answer:2},
+    {q:"Which of these is a non-renewable energy source?", options:["Solar","Coal","Wind","Water"], answer:1},
+    // Chemistry (15)
+    {q:"The chemical formula of water is:", options:["H₂O₂","H₂O","HO₂","OH"], answer:1},
+    {q:"Table salt is chemically known as:", options:["NaCl","KCl","Na₂CO₃","NaOH"], answer:0},
+    {q:"Which acid is found in lemon?", options:["Hydrochloric acid","Citric acid","Acetic acid","Sulfuric acid"], answer:1},
+    {q:"pH of a neutral solution is:", options:["0","7","14","1"], answer:1},
+    {q:"Gas released when acids react with carbonates is:", options:["Oxygen","Hydrogen","Carbon dioxide","Nitrogen"], answer:2},
+    {q:"The molecular formula of glucose is:", options:["C₆H₆O₆","C₆H₁₂O₆","C₁₂H₂₂O₁₁","CH₄"], answer:1},
+    {q:"Which metal is liquid at room temperature?", options:["Sodium","Mercury","Calcium","Potassium"], answer:1},
+    {q:"The common name of NaOH is:", options:["Baking soda","Caustic soda","Washing soda","Vinegar"], answer:1},
+    {q:"Which gas is known as “Laughing gas”?", options:["CO₂","N₂O","O₂","CH₄"], answer:1},
+    {q:"Rusting of iron is a:", options:["Physical change","Chemical change","Reversible change","Temporary change"], answer:1},
+    {q:"Which gas is used in fire extinguishers?", options:["Oxygen","Hydrogen","Carbon dioxide","Helium"], answer:2},
+    {q:"The atomic number of Carbon is:", options:["6","8","12","4"], answer:0},
+    {q:"The element with symbol “O” is:", options:["Oxygen","Osmium","Ozone","Oxide"], answer:0},
+    {q:"Which is the lightest gas?", options:["Helium","Hydrogen","Oxygen","Nitrogen"], answer:1},
+    {q:"Which acid is used in car batteries?", options:["Nitric acid","Hydrochloric acid","Sulfuric acid","Acetic acid"], answer:2},
+    // Mathematics (15)
+    {q:"Value of π (pi) is approximately:", options:["3.12","3.14","3.16","3.18"], answer:1},
+    {q:"Square root of 144 is:", options:["10","11","12","13"], answer:2},
+    {q:"Solve: 2x + 5 = 13", options:["x = 3","x = 4","x = 5","x = 6"], answer:2},
+    {q:"Area of a triangle with base 10 cm and height 6 cm is:", options:["30 cm²","60 cm²","16 cm²","36 cm²"], answer:0},
+    {q:"If a number is doubled and 6 is added, the result is 20. The number is:", options:["6","7","8","9"], answer:2},
+    {q:"Perimeter of rectangle with length 8 cm and width 5 cm is:", options:["20 cm","26 cm","30 cm","40 cm"], answer:1},
+    {q:"25% of 200 is:", options:["25","40","50","75"], answer:2},
+    {q:"0.75 expressed as fraction is:", options:["¾","⅔","⅖","⅕"], answer:0},
+    {q:"HCF of 18 and 24 is:", options:["2","3","6","12"], answer:2},
+    {q:"LCM of 12 and 15 is:", options:["30","45","60","90"], answer:2},
+    {q:"A train travels 120 km in 2 hours. Its speed is:", options:["30 km/h","40 km/h","50 km/h","60 km/h"], answer:1},
+    {q:"Solve: 3y - 7 = 11", options:["y = 4","y = 5","y = 6","y = 7"], answer:2},
+    {q:"Which of these is a prime number?", options:["21","29","39","49"], answer:1},
+    {q:"Cube of 5 is:", options:["25","75","100","125"], answer:3},
+    {q:"⅓ of 90 is:", options:["20","25","30","35"], answer:2},
+    // General Knowledge (15)
+    {q:"Capital of France is:", options:["Paris","London","Berlin","Rome"], answer:0},
+    {q:"The Red Planet is:", options:["Mercury","Venus","Mars","Jupiter"], answer:2},
+    {q:"Largest ocean in the world is:", options:["Indian","Atlantic","Pacific","Arctic"], answer:2},
+    {q:"Which country is called “Land of Rising Sun”?", options:["Japan","China","Korea","Thailand"], answer:0},
+    {q:"Who wrote “Romeo and Juliet”?", options:["William Shakespeare","Charles Dickens","Mark Twain","Jane Austen"], answer:0},
+    {q:"India got independence in:", options:["1945","1947","1950","1952"], answer:1},
+    {q:"Highest mountain in the world is:", options:["K2","Mount Everest","Kangchenjunga","Nanda Devi"], answer:1},
+    {q:"Currency of Japan is:", options:["Yen","Yuan","Won","Peso"], answer:0},
+    {q:"Gas used by plants during photosynthesis is:", options:["Oxygen","Carbon dioxide","Nitrogen","Hydrogen"], answer:1},
+    {q:"Who invented the telephone?", options:["Graham Bell","Edison","Tesla","Newton"], answer:0},
+    {q:"Which planet is the smallest in the solar system?", options:["Mars","Mercury","Pluto","Venus"], answer:1},
+    {q:"Current Prime Minister of India (2025) is:", options:["Narendra Modi","Amit Shah","Rahul Gandhi","Rajnath Singh"], answer:0},
+    {q:"Which is the longest river in the world?", options:["Amazon","Nile","Yangtze","Mississippi"], answer:1},
+    {q:"Which Indian scientist is called “Missile Man of India”?", options:["C.V. Raman","Homi Bhabha","A.P.J. Abdul Kalam","Vikram Sarabhai"], answer:2},
+    {q:"National animal of India is:", options:["Lion","Tiger","Elephant","Peacock"], answer:1},
+    // Personality (15)
+    {q:"A team project is failing due to lack of coordination. As a team member, your best action is:", options:["Wait for others to fix it","Take initiative and suggest a plan","Complain about teammates","Reduce your own effort"], answer:1},
+    {q:"If two of your close friends are in conflict, what is the most effective way to handle it?", options:["Choose one side","Stay neutral and avoid both","Help them talk and resolve differences","Spread the issue to others"], answer:2},
+    {q:"Emotional intelligence means:", options:["Controlling others’ emotions","Understanding and managing emotions (yours and others)","Avoiding emotions completely","Ignoring feelings in decision-making"], answer:1},
+    {q:"During an exam, you realize you studied the wrong topics. The best approach is:", options:["Panic and give up","Focus calmly on what you know","Try to copy answers","Leave the exam early"], answer:1},
+    {q:"Which skill is most valuable in the digital age?", options:["Memorization","Critical thinking and adaptability","Avoiding technology","Blindly following trends"], answer:1},
+    {q:"If your team disagrees with your idea, what should you do?", options:["Force them to accept it","Leave the team","Listen, adapt, and refine your idea","Ignore their feedback"], answer:2},
+    {q:"Resilience means:", options:["Avoiding difficulties at all costs","Recovering quickly after setbacks","Ignoring all problems","Depending on others always"], answer:1},
+    {q:"Which of these best reflects ethical behavior?", options:["Doing right only when supervised","Being honest and fair even without reward","Breaking rules for personal gain","Changing values based on convenience"], answer:1},
+    {q:"A good decision-maker must:", options:["Decide quickly without thinking","Weigh pros and cons carefully","Copy others’ choices","Avoid making decisions at all"], answer:1},
+    {q:"When giving constructive feedback, the best approach is:", options:["Criticize harshly","Balance positives with areas of improvement","Avoid giving feedback","Only praise without suggestions"], answer:1},
+    {q:"In a crisis situation, a leader should:", options:["Stay calm and guide the group","Panic and blame others","Withdraw from responsibility","Wait for someone else to decide"], answer:0},
+    {q:"Long-term success depends most on:", options:["Luck","Hard work and consistency","Shortcuts and manipulation","Avoiding risks always"], answer:1},
+    {q:"Effective problem-solving requires:", options:["Identifying the root cause","Guessing a random solution","Blaming others for the issue","Ignoring the problem"], answer:0},
+    {q:"Which quality makes someone trustworthy?", options:["Keeping promises and being reliable","Sharing secrets with everyone","Changing stories often","Avoiding responsibility"], answer:0},
+    {q:"Adaptability is shown when you:", options:["Refuse to change in new situations","Learn quickly and adjust to challenges","Depend on others for every decision","Stick rigidly to old habits"], answer:1}
+  ];
+
+  let questions = [];
+  let currentQ = 0;
+  let score = 0;
+  let selectedAnswers = [];
+  let categoryScores = {
+    Physics:0, Chemistry:0, Mathematics:0, GK:0, Personality:0
+  };
+  let timer = 15*60;
+  let timerInterval;
+  let started = false;
+
+  function shuffle(array) {
+    for (let i=array.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function startTest() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const dob = document.getElementById("dob").value;
+    if(!name || !email || !phone || !dob){
+      alert("Please fill all details");
+      return;
+    }
+    started = true;
+    document.getElementById("startScreen").style.display="none";
+    document.getElementById("quizScreen").style.display="block";
+    shuffle(allQuestions);
+    questions = allQuestions.slice(0,50); // pick 50 questions
+    currentQ=0;
+    score=0;
+    selectedAnswers=[];
+    for(let key in categoryScores) categoryScores[key]=0;
+    showQuestion();
+    startTimer();
+  }
+
+  function startTimer(){
+    timerInterval = setInterval(()=>{
+      timer--;
+      let min=Math.floor(timer/60), sec=timer%60;
+      document.getElementById("timer").innerText=`${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+      if(timer<=0) submitTest();
+    },1000);
+  }
+
+  document.addEventListener("visibilitychange", function(){
+    if(started && document.hidden) submitTest();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape" && started) submitTest();
+  });
+
+  function showQuestion(){
+    let q = questions[currentQ];
+    document.getElementById("questionNumber").innerText = `Question ${currentQ+1} of ${questions.length}`;
+    document.getElementById("questionBox").innerText = q.q;
+    let opts = document.getElementById("optionsBox");
+    opts.innerHTML="";
+    q.options.forEach((opt,i)=>{
+      let input = document.createElement("input");
+      input.type="radio";
+      input.name="option";
+      input.value=i;
+      input.id=`opt${i}`;
+      if(selectedAnswers[currentQ]==i) input.checked=true;
+      let label = document.createElement("label");
+      label.htmlFor=`opt${i}`;
+      label.innerText=opt;
+      label.className="option";
+      opts.appendChild(input);
+      opts.appendChild(label);
+    });
+  }
+
+  function submitAnswer(){
+    let selected = document.querySelector('input[name="option"]:checked');
+    if(!selected){
+      alert("Please select an option");
+      return;
+    }
+    selectedAnswers[currentQ]=parseInt(selected.value);
+    // Marking
+    let q = questions[currentQ];
+    if(selectedAnswers[currentQ] === q.answer){
+      score++;
+      if(currentQ<15) categoryScores.Physics++;
+      else if(currentQ<30) categoryScores.Chemistry++;
+      else if(currentQ<45) categoryScores.Mathematics++;
+      else if(currentQ<60) categoryScores.GK++;
+      else categoryScores.Personality++;
+    }
+    currentQ++;
+    if(currentQ<questions.length){
+      showQuestion();
+    } else {
+      submitTest();
+    }
+  }
+
+  function submitTest(){
+    if(!started) return;
+    started=false;
+    clearInterval(timerInterval);
+    document.getElementById("quizScreen").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+
+    let summary = document.getElementById("summary");
+    let totalPerc = Math.round((score/questions.length)*100);
+    let suitability = totalPerc>=80 ? "Highly Suitable" : totalPerc>=60 ? "Moderately Suitable" : "Less Suitable";
+    summary.innerHTML = `<p>Total Score: ${score} / ${questions.length} (${totalPerc}%)</p>
+                         <p>Overall Suitability: ${suitability}</p>`;
+    
+    // Pie Chart
+    const ctx = document.getElementById("pieChart").getContext('2d');
+    new Chart(ctx,{
+      type:'pie',
+      data:{
+        labels:Object.keys(categoryScores),
+        datasets:[{
+          label:'Category Scores',
+          data:Object.values(categoryScores),
+          backgroundColor:['#f44336','#2196f3','#4caf50','#ff9800','#9c27b0']
+        }]
+      }
+    });
+
+    // Bar Chart
+    const ctx2 = document.getElementById("barChart").getContext('2d');
+    new Chart(ctx2,{
+      type:'bar',
+      data:{
+        labels:Object.keys(categoryScores),
+        datasets:[{
+          label:'Category Scores',
+          data:Object.values(categoryScores),
+          backgroundColor:'#3f51b5'
+        }]
+      },
+      options:{scales:{y:{beginAtZero:true}}}
+    });
+
+    // Send to Google Sheets
+    fetch("https://script.google.com/macros/s/AKfycbw4ESsHltFzfjTNA2sQQ8_hZIMLkLQ-bLVkYwkPQc9uTpAG9RD-mSpO8urDfU6zZWmL/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        dob: document.getElementById("dob").value,
+        score: score,
+        category: suitability
+      })
+    });
+  }
+
+  function retakeTest() {
+    // Reset all variables
+    started = false;
+    clearInterval(timerInterval);
+    timer = 15*60;
+    currentQ = 0;
+    score = 0;
+    selectedAnswers = [];
+    for(let key in categoryScores) categoryScores[key]=0;
+
+    // Reset UI
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("startScreen").style.display = "block";
+    document.getElementById("quizScreen").style.display = "none";
+    document.getElementById("timer").innerText = "15:00";
+
+    // Clear inputs
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("dob").value = "";
+  }
+
+</script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
